@@ -280,14 +280,14 @@ namespace LB
 				throw std::domain_error{"json value does not have a size"};
 			}
 
-			value operator[](std::size_t index) const noexcept;
+			value const &operator[](std::size_t index) const noexcept;
 			value &operator[](std::size_t index);
 			array as_array() const noexcept;
 			array as_array(ensure_type const &) const;
 			array const &as_array(by_ref const &) const;
 			array &as_array(by_ref const &);
-			value operator[](string const &key) const noexcept;
-			value &operator[](string const &key) noexcept;
+			value const &operator[](string const &key) const noexcept;
+			value &operator[](string const &key);
 			range operator()(string const &key) const noexcept;
 			range operator()(string const &key, ensure_type const &) const;
 			object as_object() const noexcept;
