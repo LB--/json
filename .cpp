@@ -1,7 +1,11 @@
 #include <LB/json/.hpp>
 
+#include <cctype>
+#include <iomanip>
 #include <limits>
 #include <sstream>
+
+#include <boost/locale.hpp>
 
 namespace LB
 {
@@ -15,9 +19,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
 			{
-				string const &s = w->v;
-				//TODO: convert to lowercase
-				//http://www.boost.org/doc/libs/1_57_0/libs/locale/doc/html/conversions.html
+				string const &s = boost::locale::to_lower(w->v);
 				return s == "true" || s == "false" || s == "1" || s == "0";
 			}
 			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
@@ -74,9 +76,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
 			{
-				string const &s = w->v;
-				//TODO: convert to lowercase
-				//http://www.boost.org/doc/libs/1_57_0/libs/locale/doc/html/conversions.html
+				string const &s = boost::locale::to_lower(w->v);
 				return s == "true" || s == "1";
 			}
 			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
@@ -93,9 +93,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
 			{
-				string const &s = w->v;
-				//TODO: convert to lowercase
-				//http://www.boost.org/doc/libs/1_57_0/libs/locale/doc/html/conversions.html
+				string const &s = boost::locale::to_lower(w->v);
 				return s == "false" || s == "0";
 			}
 			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
@@ -112,7 +110,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<wrap<bool> const *>(p.get()))
 			{
-				return w->v ? 1 : 0;
+				return w->v? 1 : 0;
 			}
 			else if(auto w = dynamic_cast<wrap<real> const *>(p.get()))
 			{
@@ -168,7 +166,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<wrap<bool> const *>(p.get()))
 			{
-				return w->v ? "true" : "false";
+				return w->v? "true" : "false";
 			}
 			else if(is_null())
 			{
@@ -328,6 +326,305 @@ namespace LB
 				return w->v;
 			}
 			throw std::domain_error{"json value is not an object"};
+		}
+
+		namespace bl = boost::locale;
+
+		string escape(string const &s) noexcept
+		{
+			string ret;
+			bl::generator const gen;
+			bl::boundary::segment_index const map (bl::boundary::character, std::begin(s), std::end(s), gen("en_US.UTF-8"));
+			for(auto it = std::begin(map); it != std::end(map); ++it)
+			{
+				if(*it == "\"")
+				{
+					ret += "\\\"";
+				}
+				else if(*it == "\\")
+				{
+					ret += "\\\\";
+				}
+				else if(*it == "\b")
+				{
+					ret += "\\b";
+				}
+				else if(*it == "\f")
+				{
+					ret += "\\f";
+				}
+				else if(*it == "\n")
+				{
+					ret += "\\n";
+				}
+				else if(*it == "\r")
+				{
+					ret += "\\r";
+				}
+				else if(*it == "\t")
+				{
+					ret += "\\t";
+				}
+				else if(it->length() > 1 || !std::isprint(it->str()[0]))
+				{ //horrible, horrible code - please fix it if you know how
+					std::uint16_t n = static_cast<unsigned char>(it->str()[0]);
+					if(it->length() > 1)
+					{
+						n |= static_cast<std::uint16_t>(static_cast<unsigned char>(it->str()[1])) << 8;
+					}
+					ret += "\\u";
+					std::ostringstream os;
+					os << std::hex << std::setw(4) << std::setfill('0') << n;
+					ret += os.str();
+				}
+				else
+				{
+					ret += *it;
+				}
+			}
+			return ret;
+		}
+		string unescape(string const &s, bool exc = true)
+		{
+			string ret;
+			bl::generator const gen;
+			bl::boundary::segment_index const map (bl::boundary::character, std::begin(s), std::end(s), gen("en_US.UTF-8"));
+			for(auto it = std::begin(map); it != std::end(map); ++it)
+			{
+				if(*it == "\\")
+				{
+					if(++it == std::end(map))
+					{
+						if(exc)
+						{
+							throw std::range_error{"invalid escape at end of string"};
+						}
+						break;
+					}
+					if(*it == "\""
+					|| *it == "\\"
+					|| *it == "/")
+					{
+						ret += *it;
+					}
+					else if(*it == "b")
+					{
+						ret += '\b';
+					}
+					else if(*it == "f")
+					{
+						ret += '\f';
+					}
+					else if(*it == "n")
+					{
+						ret += '\n';
+					}
+					else if(*it == "r")
+					{
+						ret += '\r';
+					}
+					else if(*it == "t")
+					{
+						ret += '\t';
+					}
+					else if(*it == "u")
+					{ //horrible, horrible code - please fix it if you know how
+						string hex;
+						for(std::size_t i = 0; i < 4; ++i)
+						{
+							if(++it == std::end(map) || it->length() > 1)
+							{
+								if(exc)
+								{
+									throw std::range_error{"invalid Unicode escape at end of string"};
+								}
+								return ret;
+							}
+							hex += *it;
+						}
+						std::uint16_t n;
+						std::istringstream is {hex};
+						if(!(is >> std::hex >> n) && exc)
+						{
+							throw std::range_error{"invalid Unicode escape"};
+						}
+						ret += static_cast<char>(static_cast<unsigned char>(n >> 8));
+						ret += static_cast<char>(static_cast<unsigned char>(n));
+					}
+					else if(exc)
+					{
+						throw std::range_error{"invalid escape"};
+					}
+				}
+				else
+				{
+					ret += *it;
+				}
+			}
+			return ret;
+		}
+
+		std::istream &operator>>(std::istream &is, value &v) noexcept
+		{
+			//TODO
+		}
+		std::ostream &operator<<(std::ostream &os, value const &v) noexcept
+		{
+			if(v.is_null())
+			{
+				return os << "null";
+			}
+			else if(auto w = dynamic_cast<value::wrap<bool> const *>(v.p.get()))
+			{
+				if(w->v)
+				{
+					return os << "true";
+				}
+				return os << "false";
+			}
+			else if(auto w = dynamic_cast<value::wrap<integer> const *>(v.p.get()))
+			{
+				return os << w->v;
+			}
+			else if(auto w = dynamic_cast<value::wrap<real> const *>(v.p.get()))
+			{
+				return os << w->v;
+			}
+			else if(auto w = dynamic_cast<value::wrap<string> const *>(v.p.get()))
+			{
+				os << '"' << escape(w->v) << '"';
+			}
+			else if(auto w = dynamic_cast<value::wrap<array> const *>(v.p.get()))
+			{
+				os << '[';
+				bool first = true;
+				for(auto const &e : w->v)
+				{
+					if(!e)
+					{
+						continue;
+					}
+					if(!first)
+					{
+						os << ',';
+					}
+					first = false;
+					os << e;
+				}
+				return os << ']';
+			}
+			else if(auto w = dynamic_cast<value::wrap<object> const *>(v.p.get()))
+			{
+				os << '{';
+				bool first = true;
+				for(auto const &e : w->v)
+				{
+					if(!e.second)
+					{
+						continue;
+					}
+					if(!first)
+					{
+						os << ',';
+					}
+					first = false;
+					os << '"' << escape(e.first) << "\":" << e.second;
+				}
+				return os << '}';
+			}
+			return os;
+		}
+		value deserialize(string const &s, value &v)
+		{
+			//TODO
+		}
+		void serialize(value const &v, string &s, std::size_t depth)
+		{
+			if(!v)
+			{
+				throw std::domain_error{"cannot serialize invalid json value"};
+			}
+			string const indent {depth? string{depth - 1, '\t'} : ""};
+			if(v.is_null())
+			{
+				s += "null";
+			}
+			else if(auto w = dynamic_cast<value::wrap<bool> const *>(v.p.get()))
+			{
+				if(w->v)
+				{
+					s += indent + "true";
+				}
+				s += "false";
+			}
+			else if(auto w = dynamic_cast<value::wrap<integer> const *>(v.p.get()))
+			{
+				s += std::to_string(w->v);
+			}
+			else if(auto w = dynamic_cast<value::wrap<real> const *>(v.p.get()))
+			{
+				s += std::to_string(w->v);
+			}
+			else if(auto w = dynamic_cast<value::wrap<string> const *>(v.p.get()))
+			{
+				s += '"' + escape(w->v) + '"';
+			}
+			else if(auto w = dynamic_cast<value::wrap<array> const *>(v.p.get()))
+			{
+				s += (depth? "[\n" : "[");
+				bool first = true;
+				for(auto const &e : w->v)
+				{
+					if(!first)
+					{
+						s += (depth? ",\n" : ",");
+					}
+					first = false;
+					if(depth)
+					{
+						s += indent + '\t';
+					}
+					serialize(e, s, (depth? depth + 1 : depth));
+				}
+				s += indent + ']';
+			}
+			else if(auto w = dynamic_cast<value::wrap<object> const *>(v.p.get()))
+			{
+				s += (depth? "{\n" : "{");
+				bool first = true;
+				for(auto const &e : w->v)
+				{
+					if(!first)
+					{
+						s += (depth? ",\n" : ",");
+					}
+					first = false;
+					if(depth)
+					{
+						s += indent + '\t';
+					}
+					s += '"' + escape(e.first) + "\":";
+					if(depth)
+					{
+						if(e.second.is_array() || e.second.is_object())
+						{
+							s += '\n' + indent;
+						}
+						else
+						{
+							s += ' ';
+						}
+					}
+					serialize(e.second, s, (depth? depth + 1 : depth));
+				}
+				s += indent + '}';
+			}
+		}
+		string serialize(value const &v, bool pretty)
+		{
+			string s;
+			serialize(v, s, (pretty? 1 : 0));
+			return s;
 		}
 	}
 }

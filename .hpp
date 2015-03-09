@@ -295,6 +295,12 @@ namespace LB
 			object const &as_object(by_ref const &) const;
 			object &as_object(by_ref const &);
 
+			friend std::istream &operator>>(std::istream &, value &) noexcept;
+			friend std::ostream &operator<<(std::ostream &, value const &) noexcept;
+
+			friend value deserialize(string const &, value &);
+			friend string serialize(value const &, bool pretty = false);
+
 		private:
 			type t;
 			struct base
