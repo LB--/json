@@ -6,6 +6,7 @@
 #include <exception>
 #include <initializer_list>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <set>
@@ -112,7 +113,7 @@ namespace LB
 			, p{new wrap<object>{v}}
 			{
 			}
-			value(std::initiaizer_list<std::pair<string, value>> v) noexcept
+			value(std::initializer_list<std::pair<string const, value>> v) noexcept
 			: value{object{v}}
 			{
 			}
@@ -126,6 +127,7 @@ namespace LB
 			{
 				t = v.t;
 				p.reset(v.p->clone());
+				return *this;
 			}
 			value &operator=(value &&) noexcept = default;
 			~value() noexcept = default;
@@ -150,7 +152,7 @@ namespace LB
 			}
 			bool is_valid() const noexcept
 			{
-				return (t == type::null) != p;
+				return (t == type::null) != static_cast<bool>(p);
 			}
 			bool is_null() const noexcept
 			{
@@ -232,12 +234,23 @@ namespace LB
 			template<typename T>
 			T as_numeric(ensure_type const &) const
 			{
-				//TODO: range check and throw std::out_of_bounds
 				if(can_integer())
 				{
-					return static_cast<T>(as_integer());
+					integer i = as_integer();
+					if(i < std::numeric_limits<T>::min()
+					|| i > std::numeric_limits<T>::max())
+					{
+						throw std::out_of_range{"json value cannot be cast to requested range"};
+					}
+					return static_cast<T>(i);
 				}
-				return static_cast<T>(as_real(ensure_type::yes));
+				real r = as_real(ensure_type::yes);
+				if(r < std::numeric_limits<T>::min()
+				|| r > std::numeric_limits<T>::max())
+				{
+					throw std::out_of_range{"json value cannot be cast to requested range"};
+				}
+				return static_cast<T>(r);
 			}
 			integer as_integer() const noexcept;
 			integer as_integer(ensure_type const &) const
@@ -299,7 +312,11 @@ namespace LB
 			friend std::ostream &operator<<(std::ostream &, value const &) noexcept;
 
 			friend value deserialize(string const &, value &);
-			friend string serialize(value const &, bool pretty = false);
+			friend string serialize(value const &, bool pretty);
+			friend string serialize(value const &v)
+			{
+				return serialize(v, false);
+			}
 
 		private:
 			type t;
@@ -316,8 +333,8 @@ namespace LB
 					return a.less(b);
 				}
 
-				virtual bool equals(base const *) const noexcept = 0;
-				virtual bool less(base const *) const noexcept = 0;
+				virtual bool equals(base const &) const noexcept = 0;
+				virtual bool less(base const &) const noexcept = 0;
 				virtual base *clone() const noexcept = 0;
 			};
 			std::unique_ptr<base> p;
@@ -326,10 +343,29 @@ namespace LB
 			: base
 			{
 				T v;
-
-				virtual bool equals(base const *p) const noexcept override
+				wrap() noexcept
+				: v{}
 				{
-					if(auto w = dynamic_cast<wrap const *>(p))
+				}
+				wrap(T const &t) noexcept
+				: v{t}
+				{
+				}
+				wrap(T &&t) noexcept
+				: v{t}
+				{
+				}
+				wrap(wrap const &w) noexcept
+				: v{w.v}
+				{
+				}
+				wrap(wrap &&) noexcept = default;
+				wrap &operator=(wrap const &) = delete;
+				wrap &operator=(wrap &&) = delete;
+
+				virtual bool equals(base const &p) const noexcept override
+				{
+					if(auto w = dynamic_cast<wrap const *>(&p))
 					{
 						return v == w->v;
 					}
@@ -337,7 +373,7 @@ namespace LB
 				}
 				virtual bool less(base const &p) const noexcept override
 				{
-					if(auto w = dynamic_cast<wrap const *>(p))
+					if(auto w = dynamic_cast<wrap const *>(&p))
 					{
 						return v < w->v;
 					}
