@@ -96,11 +96,11 @@ namespace LB
 			}
 			template<typename ForwardIt>
 			value(ForwardIt begin, ForwardIt end) noexcept
-			: value{array{begin, end}}
+			: value(array{begin, end})
 			{
 			}
 			value(std::initializer_list<value> v) noexcept
-			: value{array{v}}
+			: value(array{v})
 			{
 			}
 			value(object const &v) noexcept
@@ -114,7 +114,7 @@ namespace LB
 			{
 			}
 			value(std::initializer_list<std::pair<string const, value>> v) noexcept
-			: value{object{v}}
+			: value(object{v})
 			{
 			}
 			value(value const &v) noexcept
