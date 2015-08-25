@@ -1,4 +1,4 @@
-#include <LB/json/.hpp>
+#include ".hpp"
 
 #include <cctype>
 #include <iomanip>
@@ -258,13 +258,13 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an array"};
 		}
-		value const &operator[](string const &key) const noexcept
+		value const &value::operator[](string const &key) const noexcept
 		{
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
 				if(w->v.find(key) != std::end(w->v))
 				{
-					return w->v.at(key);
+					return w->v.equal_range(key).first->second;
 				}
 			}
 			return invalid_value();
@@ -273,7 +273,7 @@ namespace LB
 		{
 			if(auto w = dynamic_cast<wrap<object> *>(p.get()))
 			{
-				return w->v.at(key);
+				return w->v.equal_range(key).first->second;
 			}
 			throw std::domain_error{"json value is not an object"};
 		}
@@ -282,7 +282,12 @@ namespace LB
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
 				auto r = w->v.equal_range(key);
-				return {r.first, r.second};
+				range s;
+				for(auto it = r.first; it != r.second; ++it)
+				{
+					s.emplace(it->second);
+				}
+				return s;
 			}
 			return {};
 		}
@@ -291,7 +296,12 @@ namespace LB
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
 				auto r = w->v.equal_range(key);
-				return {r.first, r.second};
+				range s;
+				for(auto it = r.first; it != r.second; ++it)
+				{
+					s.emplace(it->second);
+				}
+				return s;
 			}
 			throw std::domain_error{"json value is not an object"};
 		}
@@ -334,7 +344,7 @@ namespace LB
 		{
 			string ret;
 			bl::generator const gen;
-			bl::boundary::segment_index const map (bl::boundary::character, std::begin(s), std::end(s), gen("en_US.UTF-8"));
+			bl::boundary::segment_index<string::const_iterator> const map (bl::boundary::character, std::begin(s), std::end(s), gen("en_US.UTF-8"));
 			for(auto it = std::begin(map); it != std::end(map); ++it)
 			{
 				if(*it == "\"")
@@ -388,7 +398,7 @@ namespace LB
 		{
 			string ret;
 			bl::generator const gen;
-			bl::boundary::segment_index const map (bl::boundary::character, std::begin(s), std::end(s), gen("en_US.UTF-8"));
+			bl::boundary::segment_index<string::const_iterator> const map (bl::boundary::character, std::begin(s), std::end(s), gen("en_US.UTF-8"));
 			for(auto it = std::begin(map); it != std::end(map); ++it)
 			{
 				if(*it == "\\")
@@ -544,7 +554,7 @@ namespace LB
 			{
 				throw std::domain_error{"cannot serialize invalid json value"};
 			}
-			string const indent {depth? string{depth - 1, '\t'} : ""};
+			string const indent {depth? string(depth - std::size_t{1u}, '\t') : ""};
 			if(v.is_null())
 			{
 				s += "null";

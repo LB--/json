@@ -384,6 +384,8 @@ namespace LB
 					return new wrap{*this};
 				}
 			};
+
+			friend void serialize(value const &v, string &s, std::size_t depth);
 		};
 
 		using array = value::array;
