@@ -37,7 +37,7 @@ namespace LB
 			array,
 			object
 		};
-		bool operator<(type a, type b) noexcept
+		inline bool operator<(type a, type b) noexcept
 		{
 			using ut = typename std::underlying_type<type>::type;
 			return static_cast<ut>(a) < static_cast<ut>(b);
