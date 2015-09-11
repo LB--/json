@@ -84,6 +84,11 @@ namespace LB
 			, p{new wrap<string>{v}}
 			{
 			}
+			value(char const *v) noexcept
+			: t{type::string}
+			, p{new wrap<string>{v}}
+			{
+			}
 			value(array const &v) noexcept
 			: t{type::array}
 			, p{new wrap<array>{v}}
@@ -119,14 +124,14 @@ namespace LB
 			}
 			value(value const &v) noexcept
 			: t{v.t}
-			, p{v.p->clone()}
+			, p{v.p? v.p->clone() : nullptr}
 			{
 			}
 			value(value &&) noexcept = default;
 			value &operator=(value const &v) noexcept
 			{
 				t = v.t;
-				p.reset(v.p->clone());
+				p.reset(v.p? v.p->clone() : nullptr);
 				return *this;
 			}
 			value &operator=(value &&) noexcept = default;
@@ -348,15 +353,15 @@ namespace LB
 				{
 				}
 				wrap(T const &t) noexcept
-				: v{t}
+				: v(t)
 				{
 				}
 				wrap(T &&t) noexcept
-				: v{t}
+				: v(t)
 				{
 				}
 				wrap(wrap const &w) noexcept
-				: v{w.v}
+				: v(w.v)
 				{
 				}
 				wrap(wrap &&) noexcept = default;

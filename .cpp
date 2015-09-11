@@ -565,7 +565,10 @@ namespace LB
 				{
 					s += indent + "true";
 				}
-				s += "false";
+				else
+				{
+					s += indent + "false";
+				}
 			}
 			else if(auto w = dynamic_cast<value::wrap<integer> const *>(v.p.get()))
 			{
