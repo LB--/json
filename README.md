@@ -6,6 +6,7 @@ My personal JSON parser in C++14. Why yet another JSON parser? To support duplic
 This project is (not yet) available via [biicode](http://www.biicode.com/), just `#include <LB/json/.hpp>`
 
 Travis: [![Build Status](https://travis-ci.org/LB--/json.svg?branch=C%2B%2B14)](https://travis-ci.org/LB--/json)
+Semaphore: [![Build Status](https://semaphoreci.com/api/v1/projects/f4c52cdb-f476-4c28-a2bc-c2be54e05de2/538695/badge.svg)](https://semaphoreci.com/lb--/json)
 
 ## Building
 
