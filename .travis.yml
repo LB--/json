@@ -6,22 +6,8 @@ compiler:
 sudo: true
 
 before_install:
-  - pushd .
-# Travis is using CMake 2.8.7, but libc++abi needs 2.8.8
-  - sudo add-apt-repository --yes ppa:kalakris/cmake
-  - sudo apt-get update -qq
-  - sudo apt-get install cmake
-# Build libc++
-  - cd ..
-  - if [ "$CXX" == "clang++" ]; then export CXXFLAGS="-std=c++0x -stdlib=libc++"; fi
-  - if [ "$CXX" == "clang++" ]; then svn co --quiet http://llvm.org/svn/llvm-project/libcxx/trunk libcxx; fi
-  - if [ "$CXX" == "clang++" ]; then cd libcxx/lib && bash buildit; fi
-  - if [ "$CXX" == "clang++" ]; then sudo cp ./libc++.so.1.0 /usr/lib/; fi
-  - if [ "$CXX" == "clang++" ]; then sudo mkdir /usr/include/c++/v1; fi
-  - if [ "$CXX" == "clang++" ]; then cd .. && sudo cp -r include/* /usr/include/c++/v1/; fi
-  - if [ "$CXX" == "clang++" ]; then cd /usr/lib && sudo ln -sf libc++.so.1.0 libc++.so; fi
-  - if [ "$CXX" == "clang++" ]; then sudo ln -sf libc++.so.1.0 libc++.so.1 && cd $cwd; fi
-  - popd
+  - sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install clang-3.6
+  - sudo ln -fs /usr/bin/clang-3.6 usr/bin/clang && sudo ln -fs /usr/bin/clang++-3.6 usr/bin/clang++
 
 install:
   - wget http://apt.biicode.com/install.sh && chmod +x install.sh && ./install.sh
