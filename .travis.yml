@@ -10,6 +10,9 @@ install:
   - bii --version
   - bii setup:cpp
 
+before_script:
+  - bii init . -L
+
 script:
   - bii find
   - bii configure

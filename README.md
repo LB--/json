@@ -7,4 +7,4 @@ This project is (not yet) available via [biicode](http://www.biicode.com/), just
 
 ## Building
 
-`bii find && bii configure && bii build`
+`bii init . -L && bii find && bii configure && bii build`
