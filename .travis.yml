@@ -1,15 +1,26 @@
 language: cpp
 compiler:
   - clang
-  - gcc
+#  - gcc
 
 sudo: true
 
 before_install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  - sudo apt-get update -y
-  - sudo apt-get install gcc-5 g++-5 clang-3.6 -y
-  - sudo ln -fs /usr/bin/gcc-5 /usr/bin/gcc && sudo ln -fs /usr/bin/g++-5 /usr/bin/g++
+  - pushd .
+# Travis is using CMake 2.8.7, but libc++abi needs 2.8.8
+  - sudo add-apt-repository --yes ppa:kalakris/cmake
+  - sudo apt-get update -qq
+  - sudo apt-get install cmake
+# Build libc++
+  - if [ "$CXX" == "clang++" ]; then export CXXFLAGS="-std=c++0x -stdlib=libc++"; fi
+  - if [ "$CXX" == "clang++" ]; then svn co --quiet http://llvm.org/svn/llvm-project/libcxx/trunk libcxx; fi
+  - if [ "$CXX" == "clang++" ]; then cd libcxx/lib && bash buildit; fi
+  - if [ "$CXX" == "clang++" ]; then sudo cp ./libc++.so.1.0 /usr/lib/; fi
+  - if [ "$CXX" == "clang++" ]; then sudo mkdir /usr/include/c++/v1; fi
+  - if [ "$CXX" == "clang++" ]; then cd .. && sudo cp -r include/* /usr/include/c++/v1/; fi
+  - if [ "$CXX" == "clang++" ]; then cd /usr/lib && sudo ln -sf libc++.so.1.0 libc++.so; fi
+  - if [ "$CXX" == "clang++" ]; then sudo ln -sf libc++.so.1.0 libc++.so.1 && cd $cwd; fi
+  - popd
 
 install:
   - wget http://apt.biicode.com/install.sh && chmod +x install.sh && ./install.sh
