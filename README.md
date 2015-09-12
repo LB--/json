@@ -1,4 +1,4 @@
-JSON [![Build Status](https://travis-ci.org/LB--/json.png?branch=C++14)](https://travis-ci.org/LB--/json)
+JSON [![Build Status](https://travis-ci.org/LB--/json.svg?branch=C%2B%2B14)](https://travis-ci.org/LB--/json)
 ====
 
 My personal JSON parser in C++14. Why yet another JSON parser? To support duplicate keys!

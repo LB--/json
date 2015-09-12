@@ -1,3 +1,6 @@
+cmake_minimum_required(VERSION 3)
+
+project(json)
 
 include(biicode/boost/setup)
 
@@ -8,7 +11,8 @@ bii_find_boost(COMPONENTS locale system)
 target_include_directories(${BII_BLOCK_TARGET} INTERFACE ${Boost_INCLUDE_DIRS})
 target_link_libraries(${BII_BLOCK_TARGET} INTERFACE ${Boost_LIBRARIES})
 
-target_compile_options(${BII_BLOCK_TARGET} INTERFACE -std=c++14)
+set_property(TARGET ${BII_BLOCK_TARGET} PROPERTY CXX_STANDARD 14)
+#target_compile_options(${BII_BLOCK_TARGET} INTERFACE "-std=c++14")
 
 ###############################################################################
 #      HELP                                                                   #
