@@ -12,6 +12,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install cmake
 # Build libc++
+  - cd ..
   - if [ "$CXX" == "clang++" ]; then export CXXFLAGS="-std=c++0x -stdlib=libc++"; fi
   - if [ "$CXX" == "clang++" ]; then svn co --quiet http://llvm.org/svn/llvm-project/libcxx/trunk libcxx; fi
   - if [ "$CXX" == "clang++" ]; then cd libcxx/lib && bash buildit; fi
