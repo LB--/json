@@ -11,8 +11,9 @@ bii_find_boost(COMPONENTS locale system)
 target_include_directories(${BII_BLOCK_TARGET} INTERFACE ${Boost_INCLUDE_DIRS})
 target_link_libraries(${BII_BLOCK_TARGET} INTERFACE ${Boost_LIBRARIES})
 
-set_property(TARGET ${BII_BLOCK_TARGET} PROPERTY CXX_STANDARD 14)
+#set_property(TARGET ${BII_BLOCK_TARGET} PROPERTY CXX_STANDARD 14)
 #target_compile_options(${BII_BLOCK_TARGET} INTERFACE "-std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14") # for CMake <3.1
 
 ###############################################################################
 #      HELP                                                                   #

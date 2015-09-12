@@ -12,9 +12,9 @@ install:
 
 before_script:
   - bii init . -L
-
-script:
   - bii find
   - bii configure
+
+script:
   - bii build
   - ./bin/LB_json_test
