@@ -31,7 +31,7 @@ install:
 before_script:
   - bii init . -L
   - bii find
-  - bii configure
+  - bii configure -t
 
 script:
   - bii build
