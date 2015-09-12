@@ -8,7 +8,7 @@ sudo: true
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update -y
-  - sudo apt-get install gcc-5 g++-5 clang-3.7 -y
+  - sudo apt-get install gcc-5 g++-5 clang-3.6 -y
   - sudo ln -fs /usr/bin/gcc-5 /usr/bin/gcc && sudo ln -fs /usr/bin/g++-5 /usr/bin/g++
 
 install:
