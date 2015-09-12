@@ -1,0 +1,15 @@
+language: cpp
+compiler:
+  - clang
+  - gcc
+
+install:
+  - wget http://apt.biicode.com/install.sh && chmod +x install.sh && ./install.sh
+  - bii --version
+  - bii setup:cpp
+
+script:
+  - bii find
+  - bii configure
+  - bii build
+  - ./bin/LB_json_test
