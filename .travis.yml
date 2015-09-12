@@ -1,13 +1,9 @@
 language: cpp
 compiler:
   - clang
-#  - gcc
+  - gcc
 
 sudo: true
-
-before_install:
-  - sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install clang-3.6
-  - sudo ln -fs /usr/bin/clang-3.6 usr/bin/clang && sudo ln -fs /usr/bin/clang++-3.6 usr/bin/clang++
 
 install:
   - wget http://apt.biicode.com/install.sh && chmod +x install.sh && ./install.sh
