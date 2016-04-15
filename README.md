@@ -1,13 +1,16 @@
-JSON [![Build Status](https://webapi.biicode.com/v1/badges/LB/LB/json/master)](https://www.biicode.com/LB/json)
+json [![travis](https://travis-ci.org/LB--/json.svg?branch=C%2B%2B14)](https://travis-ci.org/LB--/json)
 ====
 
-My personal JSON parser in C++14. Why yet another JSON parser? To support duplicate keys!
+My personal C++14 JSON library in the public domain.
 
-This project is available via [biicode](http://www.biicode.com/), just `#include <LB/json/.hpp>`
+## Usage
+### CMake
+From the `cmake` directory, copy the `FindLB` directory to a place in your `CMAKE_MODULE_PATH`.
+Then, add `find_package(LB/json REQUIRED)` to your CMake script.
+You may need to set the CMake variable `LB/json_ROOT` if you installed to a nonstandard location.
+Finally, link to the `LB::json` imported target with `target_link_libraries()`.
 
-Travis: [![Build Status](https://travis-ci.org/LB--/json.svg?branch=C%2B%2B14)](https://travis-ci.org/LB--/json)
-Semaphore: [![Build Status](https://semaphoreci.com/api/v1/projects/f4c52cdb-f476-4c28-a2bc-c2be54e05de2/538695/badge.svg)](https://semaphoreci.com/lb--/json)
+### C++
+`#include <LB/json/json.hpp>`
 
-## Building
-
-`bii init . -L && bii find && bii configure && bii build`
+TODO
