@@ -143,7 +143,7 @@ namespace LB
 			}
 			friend bool operator<(value const &a, value const &b) noexcept
 			{
-				return a.t < b.t || (a.t == b.t && *a.p < *b.p);
+				return json::operator</*work around VC++ bug*/(a.t, b.t) || (a.t == b.t && *a.p < *b.p);
 			}
 
 			operator type() const noexcept

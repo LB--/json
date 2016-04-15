@@ -8,12 +8,6 @@ project(LB/json
 )
 set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/${PROJECT_VERSION}")
 
-find_package(Boost REQUIRED
-	COMPONENTS
-		locale
-		system
-)
-
 add_library(json
 	"src/json.cpp"
 )
@@ -21,11 +15,6 @@ target_include_directories(json
 	PUBLIC
 		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
 		$<INSTALL_INTERFACE:include>
-)
-target_link_libraries(json
-	PUBLIC
-		Boost::locale
-		Boost::system
 )
 
 install(

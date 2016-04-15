@@ -5,8 +5,6 @@
 #include <limits>
 #include <sstream>
 
-#include <boost/locale.hpp>
-
 namespace LB
 {
 	namespace json
@@ -19,7 +17,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
 			{
-				string const &s = boost::locale::to_lower(w->v);
+				string const &s = w->v; //TODO: lowercase
 				return s == "true" || s == "false" || s == "1" || s == "0";
 			}
 			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
@@ -76,7 +74,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
 			{
-				string const &s = boost::locale::to_lower(w->v);
+				string const &s = w->v; //TODO: lowercase
 				return s == "true" || s == "1";
 			}
 			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
@@ -93,7 +91,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
 			{
-				string const &s = boost::locale::to_lower(w->v);
+				string const &s = w->v; //TODO: lowercase
 				return s == "false" || s == "0";
 			}
 			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
@@ -338,45 +336,42 @@ namespace LB
 			throw std::domain_error{"json value is not an object"};
 		}
 
-		namespace bl = boost::locale;
-
 		string escape(string const &s) noexcept
 		{
 			string ret;
-			bl::generator const gen;
-			bl::boundary::segment_index<string::const_iterator> const map (bl::boundary::character, std::begin(s), std::end(s), gen("en_US.UTF-8"));
-			for(auto it = std::begin(map); it != std::end(map); ++it)
+			for(auto it = std::cbegin(s); it != std::cend(s); ++it)
 			{
-				if(*it == "\"")
+				if(*it == '"')
 				{
 					ret += "\\\"";
 				}
-				else if(*it == "\\")
+				else if(*it == '\\')
 				{
 					ret += "\\\\";
 				}
-				else if(*it == "\b")
+				else if(*it == '\b')
 				{
 					ret += "\\b";
 				}
-				else if(*it == "\f")
+				else if(*it == '\f')
 				{
 					ret += "\\f";
 				}
-				else if(*it == "\n")
+				else if(*it == '\n')
 				{
 					ret += "\\n";
 				}
-				else if(*it == "\r")
+				else if(*it == '\r')
 				{
 					ret += "\\r";
 				}
-				else if(*it == "\t")
+				else if(*it == '\t')
 				{
 					ret += "\\t";
 				}
-				else if(it->length() > 1 || !std::isprint(it->str()[0]))
-				{ //horrible, horrible code - please fix it if you know how
+				else if(*it & 0b10000000 || !std::isprint(*it))
+				{
+					/*TODO
 					std::uint16_t n = static_cast<unsigned char>(it->str()[0]);
 					if(it->length() > 1)
 					{
@@ -386,6 +381,7 @@ namespace LB
 					std::ostringstream os;
 					os << std::hex << std::setw(4) << std::setfill('0') << n;
 					ret += os.str();
+					*/
 				}
 				else
 				{
@@ -397,13 +393,11 @@ namespace LB
 		string unescape(string const &s, bool exc = true)
 		{
 			string ret;
-			bl::generator const gen;
-			bl::boundary::segment_index<string::const_iterator> const map (bl::boundary::character, std::begin(s), std::end(s), gen("en_US.UTF-8"));
-			for(auto it = std::begin(map); it != std::end(map); ++it)
+			for(auto it = std::cbegin(s); it != std::cend(s); ++it)
 			{
-				if(*it == "\\")
+				if(*it == '\\')
 				{
-					if(++it == std::end(map))
+					if(++it == std::cend(s))
 					{
 						if(exc)
 						{
@@ -411,34 +405,35 @@ namespace LB
 						}
 						break;
 					}
-					if(*it == "\""
-					|| *it == "\\"
-					|| *it == "/")
+					if(*it == '\"'
+					|| *it == '\\'
+					|| *it == '/')
 					{
 						ret += *it;
 					}
-					else if(*it == "b")
+					else if(*it == 'b')
 					{
 						ret += '\b';
 					}
-					else if(*it == "f")
+					else if(*it == 'f')
 					{
 						ret += '\f';
 					}
-					else if(*it == "n")
+					else if(*it == 'n')
 					{
 						ret += '\n';
 					}
-					else if(*it == "r")
+					else if(*it == 'r')
 					{
 						ret += '\r';
 					}
-					else if(*it == "t")
+					else if(*it == 't')
 					{
 						ret += '\t';
 					}
-					else if(*it == "u")
-					{ //horrible, horrible code - please fix it if you know how
+					else if(*it == 'u')
+					{
+						/*TODO
 						string hex;
 						for(std::size_t i = 0; i < 4; ++i)
 						{
@@ -460,6 +455,7 @@ namespace LB
 						}
 						ret += static_cast<char>(static_cast<unsigned char>(n >> 8));
 						ret += static_cast<char>(static_cast<unsigned char>(n));
+						*/
 					}
 					else if(exc)
 					{
@@ -477,6 +473,7 @@ namespace LB
 		std::istream &operator>>(std::istream &is, value &v) noexcept
 		{
 			//TODO
+			return is;
 		}
 		std::ostream &operator<<(std::ostream &os, value const &v) noexcept
 		{
@@ -547,6 +544,7 @@ namespace LB
 		value deserialize(string const &s, value &v)
 		{
 			//TODO
+			return v;
 		}
 		void serialize(value const &v, string &s, std::size_t depth)
 		{
