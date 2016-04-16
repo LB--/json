@@ -1,5 +1,7 @@
 #include "json.hpp"
 
+#include <iostream>
+
 namespace json = LB::json;
 
 int main()

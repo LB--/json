@@ -1,16 +1,10 @@
-#ifndef LB_json_HeaderPlusPlus
-#define LB_json_HeaderPlusPlus
+#ifndef LB_json_json_HeaderPlusPlus
+#define LB_json_json_HeaderPlusPlus
 
-#include <algorithm>
 #include <cstdint>
-#include <exception>
 #include <initializer_list>
-#include <iostream>
-#include <limits>
 #include <map>
 #include <memory>
-#include <set>
-#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
@@ -23,12 +17,8 @@ namespace LB
 		using real = long double;
 		using string = std::string;
 
-		enum struct ensure_type { yes };
-		enum struct by_ref { yes };
-
 		enum struct type
 		{
-			invalid,
 			null,
 			boolean,
 			integer,
@@ -39,7 +29,7 @@ namespace LB
 		};
 		inline bool operator<(type a, type b) noexcept
 		{
-			using ut = typename std::underlying_type<type>::type;
+			using ut = std::underlying_type_t<type>;
 			return static_cast<ut>(a) < static_cast<ut>(b);
 		}
 
@@ -47,88 +37,83 @@ namespace LB
 		{
 			using array = std::vector<value>;
 			using object = std::multimap<string, value>;
-			using range = std::multiset<value>;
 
-			value() noexcept
-			: t{type::invalid}
-			, p{nullptr}
-			{
-			}
+			value() noexcept = delete;
 			value(std::nullptr_t) noexcept
 			: t{type::null}
 			, p{nullptr}
 			{
 			}
-			value(bool v) noexcept
+			value(bool v)
 			: t{type::boolean}
 			, p{new wrap<bool>{v}}
 			{
 			}
-			value(integer v) noexcept
+			value(integer v)
 			: t{type::integer}
 			, p{new wrap<integer>{v}}
 			{
 			}
-			value(real v) noexcept
+			value(real v)
 			: t{type::real}
 			, p{new wrap<real>{v}}
 			{
 			}
-			value(string const &v) noexcept
+			value(string const &v)
 			: t{type::string}
 			, p{new wrap<string>{v}}
 			{
 			}
-			value(string &&v) noexcept
+			value(string &&v)
 			: t{type::string}
 			, p{new wrap<string>{v}}
 			{
 			}
-			value(char const *v) noexcept
+			value(char const *v)
 			: t{type::string}
 			, p{new wrap<string>{v}}
 			{
 			}
-			value(array const &v) noexcept
+			value(array const &v)
 			: t{type::array}
 			, p{new wrap<array>{v}}
 			{
 			}
-			value(array &&v) noexcept
+			value(array &&v)
 			: t{type::array}
 			, p{new wrap<array>{v}}
 			{
 			}
 			template<typename ForwardIt>
-			value(ForwardIt begin, ForwardIt end) noexcept
+			value(ForwardIt begin, ForwardIt end)
 			: value(array{begin, end})
 			{
 			}
-			value(std::initializer_list<value> v) noexcept
+			value(std::initializer_list<value> v)
 			: value(array{v})
 			{
 			}
-			value(object const &v) noexcept
+			value(object const &v)
 			: t{type::object}
 			, p{new wrap<object>{v}}
 			{
 			}
-			value(object &&v) noexcept
+			value(object &&v)
 			: t{type::object}
 			, p{new wrap<object>{v}}
 			{
 			}
-			value(std::initializer_list<std::pair<string const, value>> v) noexcept
+			value(std::initializer_list<std::pair<string const, value>> v)
 			: value(object{v})
 			{
 			}
-			value(value const &v) noexcept
+			value(value const &v)
 			: t{v.t}
 			, p{v.p? v.p->clone() : nullptr}
 			{
 			}
 			value(value &&) noexcept = default;
-			value &operator=(value const &v) noexcept
+			value &operator=(value const &v)
 			{
 				t = v.t;
 				p.reset(v.p? v.p->clone() : nullptr);
@@ -151,177 +136,24 @@ namespace LB
 				return t;
 			}
 
-			operator bool() const noexcept
-			{
-				return is_valid();
-			}
-			bool is_valid() const noexcept
-			{
-				return (t == type::null) != static_cast<bool>(p);
-			}
-			bool is_null() const noexcept
-			{
-				return t == type::null;
-			}
-			bool is_boolean() const noexcept
-			{
-				return t == type::boolean;
-			}
-			bool is_numeric() const noexcept
-			{
-				return is_integer() || is_real();
-			}
-			bool is_integer() const noexcept
-			{
-				return t == type::integer;
-			}
-			bool is_real() const noexcept
-			{
-				return t == type::real;
-			}
-			bool is_string() const noexcept
-			{
-				return t == type::string;
-			}
-			bool is_array() const noexcept
-			{
-				return t == type::array;
-			}
-			bool is_object() const noexcept
-			{
-				return t == type::object;
-			}
+			bool           boolean_value() const;
+			bool    const &boolean_cref () const;
+			bool          &boolean_ref  ();
+			integer        integer_value() const;
+			integer const &integer_cref () const;
+			integer       &integer_ref  ();
+			real           real_value   () const;
+			real    const &real_cref    () const;
+			real          &real_ref     ();
+			string  const &string_cref  () const;
+			string        &string_ref   ();
+			array   const &array_cref   () const;
+			array         &array_ref    ();
+			object  const &object_cref  () const;
+			object        &object_ref   ();
 
-			bool can_boolean() const noexcept;
-			bool can_integer() const noexcept;
-			bool can_real() const noexcept;
-			bool can_string() const noexcept
-			{
-				return is_null() || is_boolean() || is_numeric() || is_string();
-			}
-			bool can_size() const noexcept
-			{
-				return is_array() || is_object();
-			}
-
-			bool is_true() const noexcept;
-			bool is_true(ensure_type const &) const
-			{
-				if(can_boolean())
-				{
-					return is_true();
-				}
-				throw std::domain_error{"json value is not a boolean"};
-			}
-			bool is_false() const noexcept;
-			bool is_false(ensure_type const &) const
-			{
-				if(can_boolean())
-				{
-					return is_false();
-				}
-				throw std::domain_error{"json value is not a boolean"};
-			}
-
-			template<typename T>
-			T as_numeric() const noexcept
-			{
-				if(can_integer())
-				{
-					return static_cast<T>(as_integer());
-				}
-				else if(can_real())
-				{
-					return static_cast<T>(as_real());
-				}
-				return T{};
-			}
-			template<typename T>
-			T as_numeric(ensure_type const &) const
-			{
-				if(can_integer())
-				{
-					integer i = as_integer();
-					if(i < std::numeric_limits<T>::min()
-					|| i > std::numeric_limits<T>::max())
-					{
-						throw std::out_of_range{"json value cannot be cast to requested range"};
-					}
-					return static_cast<T>(i);
-				}
-				real r = as_real(ensure_type::yes);
-				if(r < std::numeric_limits<T>::min()
-				|| r > std::numeric_limits<T>::max())
-				{
-					throw std::out_of_range{"json value cannot be cast to requested range"};
-				}
-				return static_cast<T>(r);
-			}
-			integer as_integer() const noexcept;
-			integer as_integer(ensure_type const &) const
-			{
-				if(can_integer())
-				{
-					return as_integer();
-				}
-				throw std::domain_error{"json value is not an integer"};
-			}
-			real as_real() const noexcept;
-			real as_real(ensure_type const &) const
-			{
-				if(can_real())
-				{
-					return as_real();
-				}
-				throw std::domain_error{"json value is not a real"};
-			}
-
-			string as_string() const noexcept;
-			string as_string(ensure_type const &) const
-			{
-				if(can_string())
-				{
-					return as_string();
-				}
-				throw std::domain_error{"json value is not a string"};
-			}
-			string const &as_string(by_ref const &) const;
-			string &as_string(by_ref const &);
-
-			std::size_t size() const noexcept;
-			std::size_t size(ensure_type const &) const
-			{
-				if(can_size())
-				{
-					return size();
-				}
-				throw std::domain_error{"json value does not have a size"};
-			}
-
-			value const &operator[](std::size_t index) const noexcept;
-			value &operator[](std::size_t index);
-			array as_array() const noexcept;
-			array as_array(ensure_type const &) const;
-			array const &as_array(by_ref const &) const;
-			array &as_array(by_ref const &);
-			value const &operator[](string const &key) const noexcept;
-			value &operator[](string const &key);
-			range operator()(string const &key) const noexcept;
-			range operator()(string const &key, ensure_type const &) const;
-			object as_object() const noexcept;
-			object as_object(ensure_type const &) const;
-			object const &as_object(by_ref const &) const;
-			object &as_object(by_ref const &);
-
-			friend std::istream &operator>>(std::istream &, value &) noexcept;
-			friend std::ostream &operator<<(std::ostream &, value const &) noexcept;
-
-			friend value deserialize(string const &, value &);
-			friend string serialize(value const &, bool pretty);
-			friend string serialize(value const &v)
-			{
-				return serialize(v, false);
-			}
+			friend value deserialize(string const &json_utf8);
+			friend string serialize(value const &root, bool pretty = false);
 
 		private:
 			type t;
@@ -395,7 +227,6 @@ namespace LB
 
 		using array = value::array;
 		using object = value::object;
-		using range = value::range;
 	}
 }
 
