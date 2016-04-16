@@ -34,6 +34,39 @@ install(
 	DESTINATION include/${PROJECT_NAME}
 )
 
+option(BUILD_UTIL "Whether to build the optional utilities component" ON)
+if(BUILD_UTIL)
+	add_library(util
+		"src/util.cpp"
+	)
+	target_include_directories(json
+		PUBLIC
+			$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+			$<INSTALL_INTERFACE:include>
+	)
+	target_link_libraries(util
+		PUBLIC
+			json
+	)
+
+	install(
+		TARGETS
+			util
+		EXPORT util
+		ARCHIVE DESTINATION lib/${PROJECT_NAME}
+	)
+	install(
+		EXPORT util
+		DESTINATION cmake/${PROJECT_NAME}
+		NAMESPACE LB::json::
+	)
+	install(
+		FILES
+			"src/util.hpp"
+		DESTINATION include/${PROJECT_NAME}
+	)
+endif()
+
 option(BUILD_TESTS "Whether to build the tests" ON)
 if(BUILD_TESTS)
 	enable_testing()

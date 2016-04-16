@@ -1,10 +1,5 @@
 #include "json.hpp"
 
-//#include <cctype>
-//#include <iomanip>
-//#include <limits>
-//#include <sstream>
-
 namespace LB
 {
 	namespace json
@@ -143,10 +138,10 @@ namespace LB
 			return ret;
 		}
 
-		value deserialize(string const &s, value &v)
+		value deserialize(string const &s)
 		{
 			//TODO
-			return v;
+			return nullptr;
 		}
 		void serialize(value const &v, string &s, std::size_t depth)
 		{

@@ -1,117 +1,129 @@
 #include "util.hpp"
 
+#include <cctype>
+#include <iomanip>
+#include <limits>
+#include <sstream>
+
 namespace LB
 {
 	namespace json
 	{
-		bool value::can_boolean() const noexcept
+		bool can_boolean(value const &v) noexcept
 		{
-			if(is_boolean())
+			if(v == type::boolean)
 			{
 				return true;
 			}
-			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			else if(v == type::string)
 			{
-				string const &s = w->v; //TODO: lowercase
-				return s == "true" || s == "false" || s == "1" || s == "0";
+				auto const &s = v.string_cref(); //TODO: lowercase
+				return s == "true"
+				||     s == "false"
+				||     s == "1"
+				||     s == "0";
 			}
-			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
+			else if(v == type::integer)
 			{
-				return w->v == 1 || w->v == 0;
+				auto i = v.integer_value();
+				return i == 1
+				||     i == 0;
 			}
 			return false;
 		}
-		bool value::can_integer() const noexcept
+		bool can_integer(value const &v) noexcept
 		{
-			if(is_boolean() || is_integer())
+			if(v == type::boolean || v == type::integer)
 			{
 				return true;
 			}
-			else if(auto w = dynamic_cast<wrap<real> const *>(p.get()))
+			else if(v == type::real)
 			{
-				return w->v > std::numeric_limits<integer>::min()
-				&&     w->v < std::numeric_limits<integer>::max();
+				auto r = v.real_value();
+				return r > std::numeric_limits<integer>::min()
+				&&     r < std::numeric_limits<integer>::max();
 			}
-			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			else if(v == type::string)
 			{
-				std::istringstream s {w->v};
+				std::istringstream s {v.string_cref()};
 				integer i;
 				string t;
 				return (s >> i) && !(s >> t);
 			}
 			return false;
 		}
-		bool value::can_real() const noexcept
+		bool can_real(value const &v) noexcept
 		{
-			if(is_real())
+			if(v == type::real)
 			{
 				return true;
 			}
-			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
+			else if(v == type::integer)
 			{
-				return w->v > std::numeric_limits<real>::min()
-				&&     w->v < std::numeric_limits<real>::max();
+				auto i = v.integer_value();
+				return i > std::numeric_limits<real>::min()
+				&&     i < std::numeric_limits<real>::max();
 			}
-			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			else if(v == type::string)
 			{
-				std::istringstream s {w->v};
+				std::istringstream s {v.string_cref()};
 				real r;
 				string t;
 				return (s >> r) && !(s >> t);
 			}
 			return false;
 		}
-		bool value::is_true() const noexcept
+		bool is_true(value const &v) noexcept
 		{
-			if(auto w = dynamic_cast<wrap<bool> const *>(p.get()))
+			if(v == type::boolean)
 			{
-				return w->v;
+				return v.boolean_value();
 			}
-			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			else if(v == type::string)
 			{
-				string const &s = w->v; //TODO: lowercase
+				auto const &s = v.string_cref(); //TODO: lowercase
 				return s == "true" || s == "1";
 			}
-			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
+			else if(v == type::integer)
 			{
-				return w->v == 1;
+				return v.integer_value() == 1;
 			}
 			return false;
 		}
-		bool value::is_false() const noexcept
+		bool is_false(value const &v) noexcept
 		{
-			if(auto w = dynamic_cast<wrap<bool> const *>(p.get()))
+			if(v == type::boolean)
 			{
-				return w->v;
+				return v.boolean_value();
 			}
-			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			else if(v == type::string)
 			{
-				string const &s = w->v; //TODO: lowercase
+				auto const &s = v.string_cref(); //TODO: lowercase
 				return s == "false" || s == "0";
 			}
-			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
+			else if(v == type::integer)
 			{
-				return w->v == 0;
+				return v.integer_value() == 0;
 			}
 			return false;
 		}
-		integer value::as_integer() const noexcept
+		integer as_integer(value const &v) noexcept
 		{
-			if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
+			if(v == type::integer)
 			{
-				return w->v;
+				return v.integer_value();
 			}
-			else if(auto w = dynamic_cast<wrap<bool> const *>(p.get()))
+			else if(v == type::boolean)
 			{
-				return w->v? 1 : 0;
+				return v.boolean_value()? 1 : 0;
 			}
-			else if(auto w = dynamic_cast<wrap<real> const *>(p.get()))
+			else if(v == type::real)
 			{
-				return static_cast<integer>(w->v);
+				return static_cast<integer>(v.real_value());
 			}
-			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			else if(v == type::string)
 			{
-				std::istringstream s {w->v};
+				std::istringstream s {v.string_cref()};
 				integer i;
 				string t;
 				if((s >> i) && !(s >> t))
@@ -121,19 +133,19 @@ namespace LB
 			}
 			return {};
 		}
-		real value::as_real() const noexcept
+		real as_real(value const &v) noexcept
 		{
-			if(auto w = dynamic_cast<wrap<real> const *>(p.get()))
+			if(v == type::real)
 			{
-				return w->v;
+				return v.real_value();
 			}
-			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
+			else if(v == type::integer)
 			{
-				return static_cast<real>(w->v);
+				return static_cast<real>(v.integer_value());
 			}
-			else if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			else if(v == type::string)
 			{
-				std::istringstream s {w->v};
+				std::istringstream s {v.string_cref()};
 				real r;
 				string t;
 				if((s >> r) && !(s >> t))
@@ -143,64 +155,44 @@ namespace LB
 			}
 			return {};
 		}
-		string value::as_string() const noexcept
+		string as_string(value const &v) noexcept
 		{
-			if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			if(v == type::string)
 			{
-				return w->v;
+				return v.string_cref();
 			}
-			else if(auto w = dynamic_cast<wrap<integer> const *>(p.get()))
+			else if(v == type::integer)
 			{
-				return std::to_string(w->v);
+				return std::to_string(v.integer_value());
 			}
-			else if(auto w = dynamic_cast<wrap<real> const *>(p.get()))
+			else if(v == type::real)
 			{
-				return std::to_string(w->v);
+				return std::to_string(v.real_value());
 			}
-			else if(auto w = dynamic_cast<wrap<bool> const *>(p.get()))
+			else if(v == type::boolean)
 			{
-				return w->v? "true" : "false";
+				return v.boolean_value()? "true" : "false";
 			}
-			else if(is_null())
+			else if(v == type::null)
 			{
 				return "null";
 			}
 			return {};
 		}
-		string const &value::as_string(by_ref const &) const
+		std::size_t size(value const &v) noexcept
 		{
-			if(auto w = dynamic_cast<wrap<string> const *>(p.get()))
+			if(v == type::array)
 			{
-				return w->v;
+				return v.array_cref().size();
 			}
-			throw std::domain_error{"json value is not a string"};
-		}
-		string &value::as_string(by_ref const &)
-		{
-			if(auto w = dynamic_cast<wrap<string> *>(p.get()))
+			else if(v == type::object)
 			{
-				return w->v;
-			}
-			throw std::domain_error{"json value is not a string"};
-		}
-		std::size_t value::size() const noexcept
-		{
-			if(auto w = dynamic_cast<wrap<array> const *>(p.get()))
-			{
-				return w->v.size();
-			}
-			else if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
-			{
-				return w->v.size();
+				return v.object_cref().size();
 			}
 			return {};
 		}
-		static value const &invalid_value() noexcept
-		{
-			static value v;
-			return v;
-		}
-		value const &value::operator[](std::size_t index) const noexcept
+		/*
+		value const &operator[](std::size_t index) const noexcept
 		{
 			if(auto w = dynamic_cast<wrap<array> const *>(p.get()))
 			{
@@ -211,7 +203,7 @@ namespace LB
 			}
 			return invalid_value();
 		}
-		value &value::operator[](std::size_t index)
+		value &operator[](std::size_t index)
 		{
 			if(auto w = dynamic_cast<wrap<array> *>(p.get()))
 			{
@@ -219,7 +211,7 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an array"};
 		}
-		array value::as_array() const noexcept
+		array as_array() const noexcept
 		{
 			if(auto w = dynamic_cast<wrap<array> const *>(p.get()))
 			{
@@ -227,7 +219,7 @@ namespace LB
 			}
 			return {};
 		}
-		array value::as_array(ensure_type const &) const
+		array as_array(ensure_type const &) const
 		{
 			if(auto w = dynamic_cast<wrap<array> const *>(p.get()))
 			{
@@ -235,7 +227,7 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an array"};
 		}
-		array const &value::as_array(by_ref const &) const
+		array const &as_array(by_ref const &) const
 		{
 			if(auto w = dynamic_cast<wrap<array> const *>(p.get()))
 			{
@@ -243,7 +235,7 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an array"};
 		}
-		array &value::as_array(by_ref const &)
+		array &as_array(by_ref const &)
 		{
 			if(auto w = dynamic_cast<wrap<array> *>(p.get()))
 			{
@@ -251,7 +243,7 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an array"};
 		}
-		value const &value::operator[](string const &key) const noexcept
+		value const &operator[](string const &key) const noexcept
 		{
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
@@ -262,7 +254,7 @@ namespace LB
 			}
 			return invalid_value();
 		}
-		value &value::operator[](string const &key)
+		value &operator[](string const &key)
 		{
 			if(auto w = dynamic_cast<wrap<object> *>(p.get()))
 			{
@@ -270,7 +262,7 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an object"};
 		}
-		range value::operator()(string const &key) const noexcept
+		range operator()(string const &key) const noexcept
 		{
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
@@ -284,7 +276,7 @@ namespace LB
 			}
 			return {};
 		}
-		range value::operator()(string const &key, ensure_type const &) const
+		range operator()(string const &key, ensure_type const &) const
 		{
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
@@ -298,7 +290,7 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an object"};
 		}
-		object value::as_object() const noexcept
+		object as_object() const noexcept
 		{
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
@@ -306,7 +298,7 @@ namespace LB
 			}
 			return {};
 		}
-		object value::as_object(ensure_type const &) const
+		object as_object(ensure_type const &) const
 		{
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
@@ -314,7 +306,7 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an object"};
 		}
-		object const &value::as_object(by_ref const &) const
+		object const &as_object(by_ref const &) const
 		{
 			if(auto w = dynamic_cast<wrap<object> const *>(p.get()))
 			{
@@ -322,7 +314,7 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an object"};
 		}
-		object &value::as_object(by_ref const &)
+		object &as_object(by_ref const &)
 		{
 			if(auto w = dynamic_cast<wrap<object> *>(p.get()))
 			{
@@ -330,5 +322,6 @@ namespace LB
 			}
 			throw std::domain_error{"json value is not an object"};
 		}
+		*/
 	}
 }

@@ -24,63 +24,83 @@ namespace LB
 		using range = std::multiset<value>;
 
 		enum struct ensure_type { yes };
-		enum struct by_ref { yes };
 
-		bool is_numeric() const noexcept
+		bool is_numeric(value const &v) noexcept
 		{
-			return is_integer() || is_real();
+			return v == type::integer || v == type::real;
 		}
 
-		bool can_boolean() const noexcept;
-		bool can_integer() const noexcept;
-		bool can_real() const noexcept;
-		bool can_string() const noexcept
+		bool can_boolean(value const &v) noexcept;
+		bool can_integer(value const &v) noexcept;
+		bool can_real(value const &v) noexcept;
+		bool can_string(value const &v) noexcept
 		{
-			return is_null() || is_boolean() || is_numeric() || is_string();
+			return v == type::null
+			||     v == type::boolean
+			||     is_numeric(v)
+			||     v == type::string;
 		}
-		bool can_size() const noexcept
+		bool can_size(value const &v) noexcept
 		{
-			return is_array() || is_object();
+			return v == type::array || v == type::object;
 		}
 
-		bool is_true() const noexcept;
-		bool is_true(ensure_type const &) const
+		bool is_true(value const &v) noexcept;
+		bool is_true(value const &v, ensure_type const &)
 		{
-			if(can_boolean())
+			if(can_boolean(v))
 			{
-				return is_true();
+				return is_true(v);
 			}
 			throw std::domain_error{"json value is not a boolean"};
 		}
-		bool is_false() const noexcept;
-		bool is_false(ensure_type const &) const
+		bool is_false(value const &v) noexcept;
+		bool is_false(value const &v, ensure_type const &)
 		{
-			if(can_boolean())
+			if(can_boolean(v))
 			{
-				return is_false();
+				return is_false(v);
 			}
 			throw std::domain_error{"json value is not a boolean"};
 		}
 
+		integer as_integer(value const &v) noexcept;
+		integer as_integer(value const &v, ensure_type const &)
+		{
+			if(can_integer(v))
+			{
+				return as_integer(v);
+			}
+			throw std::domain_error{"json value is not an integer"};
+		}
+		real as_real(value const &v) noexcept;
+		real as_real(value const &v, ensure_type const &)
+		{
+			if(can_real(v))
+			{
+				return as_real(v);
+			}
+			throw std::domain_error{"json value is not a real"};
+		}
 		template<typename T>
-		T as_numeric() const noexcept
+		T as_numeric(value const &v) noexcept
 		{
-			if(can_integer())
+			if(can_integer(v))
 			{
-				return static_cast<T>(as_integer());
+				return static_cast<T>(as_integer(v));
 			}
-			else if(can_real())
+			else if(can_real(v))
 			{
-				return static_cast<T>(as_real());
+				return static_cast<T>(as_real(v));
 			}
 			return T{};
 		}
 		template<typename T>
-		T as_numeric(ensure_type const &) const
+		T as_numeric(value const &v, ensure_type const &)
 		{
-			if(can_integer())
+			if(can_integer(v))
 			{
-				integer i = as_integer();
+				integer i = as_integer(v);
 				if(i < std::numeric_limits<T>::min()
 				|| i > std::numeric_limits<T>::max())
 				{
@@ -88,7 +108,7 @@ namespace LB
 				}
 				return static_cast<T>(i);
 			}
-			real r = as_real(ensure_type::yes);
+			real r = as_real(v, ensure_type::yes);
 			if(r < std::numeric_limits<T>::min()
 			|| r > std::numeric_limits<T>::max())
 			{
@@ -96,47 +116,28 @@ namespace LB
 			}
 			return static_cast<T>(r);
 		}
-		integer as_integer() const noexcept;
-		integer as_integer(ensure_type const &) const
-		{
-			if(can_integer())
-			{
-				return as_integer();
-			}
-			throw std::domain_error{"json value is not an integer"};
-		}
-		real as_real() const noexcept;
-		real as_real(ensure_type const &) const
-		{
-			if(can_real())
-			{
-				return as_real();
-			}
-			throw std::domain_error{"json value is not a real"};
-		}
 
-		string as_string() const noexcept;
-		string as_string(ensure_type const &) const
+		string as_string(value const &v) noexcept;
+		string as_string(value const &v, ensure_type const &)
 		{
-			if(can_string())
+			if(can_string(v))
 			{
-				return as_string();
+				return as_string(v);
 			}
 			throw std::domain_error{"json value is not a string"};
 		}
-		string const &as_string(by_ref const &) const;
-		string &as_string(by_ref const &);
 
-		std::size_t size() const noexcept;
-		std::size_t size(ensure_type const &) const
+		std::size_t size(value const &v) noexcept;
+		std::size_t size(value const &v, ensure_type const &)
 		{
-			if(can_size())
+			if(can_size(v))
 			{
-				return size();
+				return size(v);
 			}
 			throw std::domain_error{"json value does not have a size"};
 		}
 
+		/*
 		value const &operator[](std::size_t index) const noexcept;
 		value &operator[](std::size_t index);
 		array as_array() const noexcept;
@@ -151,6 +152,7 @@ namespace LB
 		object as_object(ensure_type const &) const;
 		object const &as_object(by_ref const &) const;
 		object &as_object(by_ref const &);
+		*/
 	}
 }
 

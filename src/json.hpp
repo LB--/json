@@ -137,20 +137,20 @@ namespace LB
 			}
 
 			bool           boolean_value() const;
-			bool    const &boolean_cref () const;
-			bool          &boolean_ref  ();
+			bool    const &boolean_cref () const &;
+			bool          &boolean_ref  ()       &;
 			integer        integer_value() const;
-			integer const &integer_cref () const;
-			integer       &integer_ref  ();
+			integer const &integer_cref () const &;
+			integer       &integer_ref  ()       &;
 			real           real_value   () const;
-			real    const &real_cref    () const;
-			real          &real_ref     ();
-			string  const &string_cref  () const;
-			string        &string_ref   ();
-			array   const &array_cref   () const;
-			array         &array_ref    ();
-			object  const &object_cref  () const;
-			object        &object_ref   ();
+			real    const &real_cref    () const &;
+			real          &real_ref     ()       &;
+			string  const &string_cref  () const &;
+			string        &string_ref   ()       &;
+			array   const &array_cref   () const &;
+			array         &array_ref    ()       &;
+			object  const &object_cref  () const &;
+			object        &object_ref   ()       &;
 
 			friend value deserialize(string const &json_utf8);
 			friend string serialize(value const &root, bool pretty = false);
