@@ -14,7 +14,7 @@ Finally, link to the `LB::json` imported target with `target_link_libraries()`.
 
 #### Utilities
 By default the optional utilities library is built and installed, but if you don't need it you can tell CMake `-DBUILD_UTIL=OFF`.
-If you do plan to use it, you must ask for it in your `find_package` command with either `COMPONENTS` or `OPTIONAL_COMPONENTS`.
+If you do plan to use it, you must ask for `util` in your `find_package` command with either `COMPONENTS` or `OPTIONAL_COMPONENTS`.
 Then, link to the `LB::json::util` imported target with `target_link_libraries()`.
 
 ### C++
