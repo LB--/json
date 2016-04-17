@@ -4,6 +4,67 @@ namespace LB
 {
 	namespace json
 	{
+		bool value::boolean_value() const
+		{
+			return dynamic_cast<wrap<bool> const &>(*p).v;
+		}
+		bool const &value::boolean_cref() const &
+		{
+			return dynamic_cast<wrap<bool> const &>(*p).v;
+		}
+		bool &value::boolean_ref() &
+		{
+			return dynamic_cast<wrap<bool> &>(*p).v;
+		}
+		integer value::integer_value() const
+		{
+			return dynamic_cast<wrap<integer> const &>(*p).v;
+		}
+		integer const &value::integer_cref() const &
+		{
+			return dynamic_cast<wrap<integer> const &>(*p).v;
+		}
+		integer &value::integer_ref() &
+		{
+			return dynamic_cast<wrap<integer> &>(*p).v;
+		}
+		real value::real_value() const
+		{
+			return dynamic_cast<wrap<real> const &>(*p).v;
+		}
+		real const &value::real_cref() const &
+		{
+			return dynamic_cast<wrap<real> const &>(*p).v;
+		}
+		real &value::real_ref() &
+		{
+			return dynamic_cast<wrap<real> &>(*p).v;
+		}
+		string const &value::string_cref() const &
+		{
+			return dynamic_cast<wrap<string> const &>(*p).v;
+		}
+		string &value::string_ref() &
+		{
+			return dynamic_cast<wrap<string> &>(*p).v;
+		}
+		array const &value::array_cref() const &
+		{
+			return dynamic_cast<wrap<array> const &>(*p).v;
+		}
+		array &value::array_ref() &
+		{
+			return dynamic_cast<wrap<array> &>(*p).v;
+		}
+		object const &value::object_cref() const &
+		{
+			return dynamic_cast<wrap<object> const &>(*p).v;
+		}
+		object &value::object_ref() &
+		{
+			return dynamic_cast<wrap<object> &>(*p).v;
+		}
+
 		string escape(string const &s)
 		{
 			string ret;
