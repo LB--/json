@@ -4,6 +4,7 @@ json [![travis](https://travis-ci.org/LB--/json.svg?branch=C%2B%2B14)](https://t
 My personal C++14 JSON library in the public domain.
 Notable features include support for duplicate keys in objects, and distinction between integers and reals.
 The latter feature was the main inspiration to make yet another JSON library, as most that I found did not make any such distinction.
+(For a C library that also distinguishes between integers and reals, check out [udp/json-parser](https://github.com/udp/json-parser))
 
 ## Usage
 ### CMake

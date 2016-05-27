@@ -14,6 +14,26 @@ namespace LB
 {
 	namespace json
 	{
+		enum struct deserialize_forgiveness
+		{
+			unforgiving,
+			forgiving
+		};
+		struct deserialize_settings final
+		{
+			deserialize_forgiveness forgiveness = deserialize_forgiveness::unforgiving;
+		};
+
+		enum struct serialize_formatting
+		{
+			compact,
+			pretty
+		};
+		struct serialize_settings final
+		{
+			serialize_formatting formatting = serialize_formatting::compact;
+		};
+
 		using integer = std::intmax_t;
 		using real = long double;
 		using string = std::string;
@@ -94,8 +114,8 @@ namespace LB
 			object  const &object_cref  () const &;
 			object        &object_ref   ()       &;
 
-			friend value deserialize(string const &json_utf8);
-			friend string serialize(value const &root, bool pretty = false);
+			friend value deserialize(string const &json_utf8, deserialize_settings settings = {});
+			friend string serialize(value const &root, serialize_settings settings = {});
 
 		private:
 			type t;

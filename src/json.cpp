@@ -345,7 +345,7 @@ namespace LB
 			return ret;
 		}
 
-		value deserialize(string const &s)
+		value deserialize(string const &s, deserialize_settings settings)
 		{
 			//TODO
 			return nullptr;
@@ -431,10 +431,10 @@ namespace LB
 				s += indent + '}';
 			}
 		}
-		string serialize(value const &v, bool pretty)
+		string serialize(value const &v, serialize_settings settings)
 		{
 			string s;
-			serialize(v, s, (pretty? 1 : 0));
+			serialize(v, s, (settings.formatting == serialize_formatting::pretty? 1 : 0));
 			return s;
 		}
 	}
