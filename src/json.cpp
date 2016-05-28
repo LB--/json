@@ -361,11 +361,11 @@ namespace LB
 			{
 				if(w->v)
 				{
-					s += indent + "true";
+					s += "true";
 				}
 				else
 				{
-					s += indent + "false";
+					s += "false";
 				}
 			}
 			else if(auto w = dynamic_cast<value::wrap<integer> const *>(v.p.get()))
@@ -382,7 +382,7 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<value::wrap<array> const *>(v.p.get()))
 			{
-				s += (depth? "[\n" : "[");
+				s += (depth? indent + "[\n" : "[");
 				bool first = true;
 				for(auto const &e : w->v)
 				{
@@ -391,17 +391,21 @@ namespace LB
 						s += (depth? ",\n" : ",");
 					}
 					first = false;
-					if(depth)
+					if(depth && e != type::array && e != type::object)
 					{
 						s += indent + '\t';
 					}
 					serialize(e, s, (depth? depth + 1 : depth));
 				}
+				if(depth && !first)
+				{
+					s += '\n';
+				}
 				s += indent + ']';
 			}
 			else if(auto w = dynamic_cast<value::wrap<object> const *>(v.p.get()))
 			{
-				s += (depth? "{\n" : "{");
+				s += (depth? indent + "{\n" : "{");
 				bool first = true;
 				for(auto const &e : w->v)
 				{
@@ -419,7 +423,7 @@ namespace LB
 					{
 						if(e.second == type::array || e.second == type::object)
 						{
-							s += '\n' + indent;
+							s += '\n';
 						}
 						else
 						{
@@ -428,7 +432,11 @@ namespace LB
 					}
 					serialize(e.second, s, (depth? depth + 1 : depth));
 				}
-				s += indent + '}';
+				if(depth && !first)
+				{
+					s += '\n';
+				}
+				s += indent + "}";
 			}
 		}
 		string serialize(value const &v, serialize_settings settings)
