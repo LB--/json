@@ -1,0 +1,3 @@
+[submodule "deps/LB/utf"]
+	path = utf
+	url = https://github.com/LB--/utf.git

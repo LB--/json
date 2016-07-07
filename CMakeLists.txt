@@ -1,74 +1,33 @@
 cmake_minimum_required(VERSION 3.4)
 
-set(CMAKE_CXX_STANDARD 14 CACHE STRING "Must be at least 14")
-
-project(LB/json
-	VERSION 0.0.0
-	LANGUAGES CXX
-)
-set(CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}/${PROJECT_VERSION}")
-
-add_library(json
-	"src/json.cpp"
-)
-target_include_directories(json
-	PUBLIC
-		$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
-		$<INSTALL_INTERFACE:include>
+project(LB::json-superproject
+	LANGUAGES NONE
 )
 
-install(
-	TARGETS
-		json
-	EXPORT json
-	ARCHIVE DESTINATION lib/${PROJECT_NAME}
-)
-install(
-	EXPORT json
-	DESTINATION cmake/LB
-	NAMESPACE LB::
-)
-install(
-	FILES
-		"src/json.hpp"
-	DESTINATION include/${PROJECT_NAME}
-)
+set(CTEST_ARGS "--output-on-failure" CACHE STRING ";-list of arguments to pass to ctest")
 
-option(BUILD_UTIL "Whether to build the optional utilities component" ON)
-if(BUILD_UTIL)
-	add_library(util
-		"src/util.cpp"
-	)
-	target_include_directories(json
-		PUBLIC
-			$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
-			$<INSTALL_INTERFACE:include>
-	)
-	target_link_libraries(util
-		PUBLIC
-			json
-	)
-
-	install(
-		TARGETS
-			util
-		EXPORT util
-		ARCHIVE DESTINATION lib/${PROJECT_NAME}
-	)
-	install(
-		EXPORT util
-		DESTINATION cmake/${PROJECT_NAME}
-		NAMESPACE LB::json::
-	)
-	install(
-		FILES
-			"src/util.hpp"
-		DESTINATION include/${PROJECT_NAME}
-	)
-endif()
-
-option(BUILD_TESTS "Whether to build the tests" ON)
-if(BUILD_TESTS)
-	enable_testing()
-	add_subdirectory(test)
-endif()
+include(ExternalProject)
+ExternalProject_Add(utf
+	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/utf"
+	BUILD_ALWAYS 1
+	LIST_SEPARATOR "#"
+	CMAKE_ARGS
+		"-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
+		"-DBUILD_TESTS=OFF"
+		"-DBUILD_EXAMPLES=OFF"
+		${LB_UTF_ARGS}
+	TEST_EXCLUDE_FROM_MAIN 1
+)
+ExternalProject_Add(json
+	DEPENDS
+		utf
+	SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/json"
+	BUILD_ALWAYS 1
+	LIST_SEPARATOR "#"
+	CMAKE_ARGS
+		"-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}"
+		"-DCMAKE_MODULE_PATH=${CMAKE_CURRENT_SOURCE_DIR}/utf/cmake"
+		${LB_JSON_ARGS}
+	TEST_BEFORE_INSTALL 1
+	TEST_COMMAND ctest ${CTEST_ARGS}
+)

@@ -2,9 +2,10 @@ json [![travis](https://travis-ci.org/LB--/json.svg?branch=C%2B%2B14)](https://t
 ====
 
 My personal C++14 JSON library in the public domain.
-Notable features include support for duplicate keys in objects, and distinction between integers and reals.
-The latter feature was the main inspiration to make yet another JSON library, as most that I found did not make any such distinction.
-(For a C library that also distinguishes between integers and reals, check out [udp/json-parser](https://github.com/udp/json-parser))
+Notable features include support for duplicate keys in objects, preservation of the order of keys, and distinction between integers and reals.
+
+Consider instead [nlohmann/json](https://github.com/nlohmann/json) (MIT license) if you want a more robust and feature-rich C++ json library (though preservation of order of keys is not provided by default, you can provide your own map type).
+Or, if you're looking for a C JSON library with similar properties, consider [udp/json-parser](https://github.com/udp/json-parser) and [udp/json-builder](https://github.com/udp/json-builder) (BSD license).
 
 ## Usage
 ### CMake

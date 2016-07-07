@@ -2,8 +2,6 @@
 #define LB_json_json_HeaderPlusPlus
 
 #include <cstdint>
-#include <initializer_list>
-#include <map>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -57,7 +55,7 @@ namespace LB
 		struct value final
 		{
 			using array = std::vector<value>;
-			using object = std::multimap<string, value>;
+			using object = std::vector<std::pair<string, value>>;
 
 			value() noexcept = delete;
 			value(std::nullptr_t) noexcept;
@@ -66,28 +64,19 @@ namespace LB
 			value(real v);
 			value(string const &v);
 			value(string &&v);
-			value(char const *v);
+			template<std::size_t N>
+			value(string::value_type const (&literal)[N])
+			: value(string{literal, N-1})
+			{
+			}
 			value(array const &v);
 			value(array &&v);
-			template<typename ForwardIt>
-			value(ForwardIt begin, ForwardIt end)
-			: value(array{begin, end})
-			{
-			}
-			value(std::initializer_list<value> v)
-			: value(array{v})
-			{
-			}
 			value(object const &v);
 			value(object &&v);
-			value(std::initializer_list<std::pair<string const, value>> v)
-			: value(object{v})
-			{
-			}
 			value(value const &v);
-			value(value &&) noexcept = default;
+			value(value &&) noexcept;
 			value &operator=(value const &v);
-			value &operator=(value &&) noexcept = default;
+			value &operator=(value &&) noexcept;
 			~value() noexcept;
 
 			friend bool operator==(value const &a, value const &b) noexcept;

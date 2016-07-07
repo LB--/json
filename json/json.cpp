@@ -1,5 +1,13 @@
 #include "json.hpp"
 
+#include "LB/utf/utf.hpp"
+
+#include <functional>
+#include <iomanip>
+#include <limits>
+#include <sstream>
+#include <utility>
+
 namespace LB
 {
 	namespace json
@@ -98,11 +106,6 @@ namespace LB
 		, p{new wrap<string>{v}}
 		{
 		}
-		value::value(char const *v)
-		: t{type::string}
-		, p{new wrap<string>{v}}
-		{
-		}
 		value::value(array const &v)
 		: t{type::array}
 		, p{new wrap<array>{v}}
@@ -128,12 +131,14 @@ namespace LB
 		, p{v.p? v.p->clone() : nullptr}
 		{
 		}
+		value::value(value &&) noexcept = default;
 		value &value::operator=(value const &v)
 		{
 			t = v.t;
 			p.reset(v.p? v.p->clone() : nullptr);
 			return *this;
 		}
+		value &value::operator=(value &&) noexcept = default;
 		value::~value() noexcept = default;
 
 		bool operator==(value const &a, value const &b) noexcept
@@ -244,19 +249,16 @@ namespace LB
 				{
 					ret += "\\t";
 				}
-				else if(*it & 0b10000000 || !std::isprint(*it))
+				else if(*it & 0b10000000u)
 				{
-					/*TODO
-					std::uint16_t n = static_cast<unsigned char>(it->str()[0]);
-					if(it->length() > 1)
-					{
-						n |= static_cast<std::uint16_t>(static_cast<unsigned char>(it->str()[1])) << 8;
-					}
+					ret += *it;
+				}
+				else if(!std::isprint(*it))
+				{
 					ret += "\\u";
-					std::ostringstream os;
-					os << std::hex << std::setw(4) << std::setfill('0') << n;
-					ret += os.str();
-					*/
+					std::ostringstream oss;
+					oss << std::hex << std::setw(4) << std::setfill('0') << static_cast<std::uint16_t>(*it);
+					ret += oss.str();
 				}
 				else
 				{
@@ -265,7 +267,7 @@ namespace LB
 			}
 			return ret;
 		}
-		string unescape(string const &s, bool exc = true)
+		string unescape(string const &s)
 		{
 			string ret;
 			for(auto it = std::cbegin(s); it != std::cend(s); ++it)
@@ -274,11 +276,7 @@ namespace LB
 				{
 					if(++it == std::cend(s))
 					{
-						if(exc)
-						{
-							throw std::range_error{"invalid escape at end of string"};
-						}
-						break;
+						throw std::range_error{"invalid escape at end of string"};
 					}
 					if(*it == '\"'
 					|| *it == '\\'
@@ -308,31 +306,24 @@ namespace LB
 					}
 					else if(*it == 'u')
 					{
-						/*TODO
 						string hex;
 						for(std::size_t i = 0; i < 4; ++i)
 						{
-							if(++it == std::end(map) || it->length() > 1)
+							if(++it == std::cend(s))
 							{
-								if(exc)
-								{
-									throw std::range_error{"invalid Unicode escape at end of string"};
-								}
-								return ret;
+								throw std::range_error{"invalid unicode escape at end of string"};
 							}
 							hex += *it;
 						}
 						std::uint16_t n;
 						std::istringstream is {hex};
-						if(!(is >> std::hex >> n) && exc)
+						if(!(is >> std::hex >> n))
 						{
-							throw std::range_error{"invalid Unicode escape"};
+							throw std::range_error{"invalid unicode escape"};
 						}
-						ret += static_cast<char>(static_cast<unsigned char>(n >> 8));
-						ret += static_cast<char>(static_cast<unsigned char>(n));
-						*/
+						ret += utf::encode_code_point<string::value_type>(n);
 					}
-					else if(exc)
+					else
 					{
 						throw std::range_error{"invalid escape"};
 					}
@@ -374,7 +365,14 @@ namespace LB
 			}
 			else if(auto w = dynamic_cast<value::wrap<real> const *>(v.p.get()))
 			{
-				s += std::to_string(w->v);
+				std::ostringstream oss;
+				oss.precision(std::numeric_limits<real>::max_digits10);
+				oss << w->v;
+				s += oss.str();
+				if(oss.str().rfind('.') == std::string::npos)
+				{
+					s += ".0";
+				}
 			}
 			else if(auto w = dynamic_cast<value::wrap<string> const *>(v.p.get()))
 			{
